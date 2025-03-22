@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firestore User Management</title>
+</head>
+<body>
+    <h2>Firestore User Management</h2>
+
+    <h3>Add User</h3>
+    <input type="text" id="username" placeholder="Username">
+    <input type="email" id="userEmail" placeholder="Email">
+    <input type="password" id="userPassword" placeholder="Password">
+    <button id="addUser">Add User</button>
+
+    <h3>Login</h3>
+    <input type="email" id="loginEmail" placeholder="Email">
+    <input type="password" id="loginPassword" placeholder="Password">
+    <button id="login">Login</button>
+
+    <button id="logout" style="display:none;">Logout</button>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDJ1yVBTqUfCmqp34mGU7Fufpx6Nk0TEYo",
+            authDomain: "mywebapp-194e1.firebaseapp.com",
+            projectId: "mywebapp-194e1",
+            storageBucket: "mywebapp-194e1.appspot.com", // Fixed storageBucket URL
+            messagingSenderId: "832010945565",
+            appId: "1:832010945565:web:94caf38dbde40dec1932f4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth();
+
+        document.getElementById("addUser").addEventListener("click", async function () {
+            const username = document.getElementById("username").value;
+            const email = document.getElementById("userEmail").value;
+            const password = document.getElementById("userPassword").value;
+
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                await addDoc(collection(db, "users"), { name: username, email: email });
+                alert("User Registered Successfully!");
+            } catch (error) {
+                alert("Error: " + error.message);
+            }
+        });
+
+        document.getElementById("login").addEventListener("click", async function () {
+            const email = document.getElementById("loginEmail").value;
+            const password = document.getElementById("loginPassword").value;
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                document.getElementById("logout").style.display = "block";
+                alert("Login Successful!");
+            } catch (error) {
+                alert("Login Failed: " + error.message);
+            }
+        });
+
+        document.getElementById("logout").addEventListener("click", async function () {
+            try {
+                await signOut(auth);
+                document.getElementById("logout").style.display = "none";
+                alert("Logged Out Successfully!");
+            } catch (error) {
+                console.error("Logout Error:", error);
+            }
+        });
+
+        async function getUsers() {
+            const querySnapshot = await getDocs(collection(db, "users"));
+            querySnapshot.forEach((doc) => {
+                console.log(`${doc.id} =>`, doc.data());
+            });
+        }
+    </script>
+</body>
+</html>
